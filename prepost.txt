@@ -1,116 +1,101 @@
+#include <iostream>
+#include <map>
+#include <stack>
 
-
-#include<bits/stdc++.h>
 using namespace std;
 
-struct node{
+class node {
+   public:
     char data;
     node *left, *right;
+    node() {
+        left = NULL;
+        right = NULL;
+    }
+
+    node(char ch) {
+        data = ch;
+        left = NULL;
+        right = NULL;
+    }
 };
 
-class Stack{
-        node *data[30];
-        int top;
-    public:
-        Stack(){
-            top = -1;
-        }
-        int empty(){
-            if(top==-1)
+class tree {
+   private:
+    node *root;
+    stack<node *> nodestack;
+
+    bool isOperator(char ch) {
+        switch (ch) {
+            case '+':
+            case '-':
+            case '*':
+            case '/':
                 return 1;
-            return 0;
+                break;
+            default:
+                return 0;
+                break;
         }
-        void push(node *p){
-            data[++top]=p;
+    }
+
+    void insert(char ch) {
+        if (isOperator(ch)) {
+            node *newnode = new node(ch);
+            newnode->left = nodestack.top();
+            nodestack.pop();
+            newnode->right = nodestack.top();
+            nodestack.pop();
+            nodestack.push(newnode);
+        } else {
+            node *newnode = new node(ch);
+            nodestack.push(newnode);
         }
-        node *pop(){
-            return(data[top--]);
+    }
+
+   public:
+    void input_prefix(string exp) {
+        for (int i = exp.length() - 1; i > -1; i--) {
+            insert(exp[i]);
         }
+        root = nodestack.top();
+        nodestack.pop();
+    }
+
+    void display_postfix() {
+        node *temp = root;
+
+        stack<node *> stack1, stack2;
+
+        stack1.push(root);
+
+        while (!stack1.empty()) {
+            temp = stack1.top();
+            stack1.pop();
+            stack2.push(temp);
+            if (temp->left != NULL) {
+                stack1.push(temp->left);
+            }
+            if (temp->right != NULL) {
+                stack1.push(temp->right);
+            }
+        }
+        while (!stack2.empty()) {
+            temp = stack2.top();
+            stack2.pop();
+            cout << temp->data;
+        }
+
+        cout << endl;
+    }
 };
 
-class tree
-{
-        char prefix[20];
-    public:
-        node *top;
-        void express(char []);
-        void display(node *);
-        void nonRecPostorder(node *);
-        void del(node *);
-};
-
-
-void tree::express(char prefix[]){
-    char c;
-    Stack s;
-    node *t1, *t2;
-    int len = strlen(prefix);
-    for(int i=len-1;i>=0;i--){
-        top = new node;
-        top->left = NULL;
-        top->right= NULL;
-        if(isalpha(prefix[i])){
-            top->data = prefix[i];
-            s.push(top);
-        }
-        else if(prefix[i]=='+' || prefix[i]=='-' || prefix[i]=='*' || prefix[i]=='/'){
-            t2 = s.pop();
-            t1 = s.pop();
-
-            top->data = prefix[i];
-            top->left = t2;
-            top->right = t1;
-            s.push(top);
-        }
-    }
-    top = s.pop();
-}
-
-void tree::display(node *r){
-    if(r!=NULL){
-        cout<<r->data;
-        display(r->left);
-        display(r->right);
-    }
-}
-
-void tree::nonRecPostorder(node *top){
-    Stack s1, s2;
-    node *t = top;
-    cout<<endl;
-    s1.push(t);
-    while (!s1.empty()){
-        t = s1.pop();
-        s2.push(t);
-        if(t->left!= NULL)
-            s1.push(t->left);
-        if(t->right!=NULL)
-            s1.push(t->right);
-    }
-    while (!s2.empty()){
-        top = s2.pop();
-        cout<<top->data;
-    }
-}
-
-void tree::del(node *n){
-    if(n==NULL)
-        return;
-    del(n->left);
-    del(n->right);
-    cout<<"Deleting the node"<<n->data;
-    free(n);
-}
-
-int main()
-{
-    char exp[20];
-    tree t;
-
-    cout<<"Enter the prefix Expression:";
-    cin>>exp;
-
-    t.express(exp);
-    t.nonRecPostorder(t.top);
+int main() {
+    tree exp_tree;
+    string e;
+    cout << "Enter Prefix Expression:";
+    cin >> e;
+    exp_tree.input_prefix(e);
+    exp_tree.display_postfix();
     return 0;
 }
